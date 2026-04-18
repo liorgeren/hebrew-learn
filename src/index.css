@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Noto+Sans+Hebrew:wght@400;700;900&family=Frank+Ruhl+Libre:wght@400;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #fffbf0;
+  font-family: 'Fredoka One', cursive;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.hebrew-text {
+  font-family: 'Noto Sans Hebrew', 'Frank Ruhl Libre', serif;
+  direction: rtl;
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
