@@ -18,14 +18,12 @@ export interface ProgressState {
   totalStars: number;
 }
 
-const WORLD_ORDER: WorldId[] = ['letters', 'nikud', 'syllables', 'words'];
-
 const DEFAULT_PROGRESS: ProgressState = {
   worlds: {
     letters: { unlocked: true, lessons: {}, totalStars: 0 },
-    nikud: { unlocked: false, lessons: {}, totalStars: 0 },
-    syllables: { unlocked: false, lessons: {}, totalStars: 0 },
-    words: { unlocked: false, lessons: {}, totalStars: 0 },
+    nikud: { unlocked: true, lessons: {}, totalStars: 0 },
+    syllables: { unlocked: true, lessons: {}, totalStars: 0 },
+    words: { unlocked: true, lessons: {}, totalStars: 0 },
   },
   totalStars: 0,
 };
@@ -83,14 +81,6 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
 
         const updatedWorlds = { ...prev.worlds, [worldId]: updatedWorld };
 
-        // Unlock next world if current world has at least 3 completed lessons
-        const currentIdx = WORLD_ORDER.indexOf(worldId);
-        const completedLessons = Object.values(updatedWorld.lessons).filter(l => l.completed).length;
-        if (completedLessons >= 3 && currentIdx < WORLD_ORDER.length - 1) {
-          const nextWorld = WORLD_ORDER[currentIdx + 1];
-          updatedWorlds[nextWorld] = { ...updatedWorlds[nextWorld], unlocked: true };
-        }
-
         const newState: ProgressState = {
           worlds: updatedWorlds,
           totalStars: prev.totalStars + starDelta,
@@ -107,10 +97,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     setProgress(DEFAULT_PROGRESS);
   }, []);
 
-  const isWorldUnlocked = useCallback(
-    (worldId: WorldId) => progress.worlds[worldId]?.unlocked ?? false,
-    [progress]
-  );
+  const isWorldUnlocked = useCallback((_worldId: WorldId) => true, []);
 
   const getLessonStars = useCallback(
     (worldId: WorldId, lessonId: string) =>

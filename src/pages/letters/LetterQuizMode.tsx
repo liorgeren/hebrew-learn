@@ -6,7 +6,7 @@ import StarBurst from '../../components/StarBurst';
 import StarsDisplay from '../../components/StarsDisplay';
 import { useProgress } from '../../context/ProgressContext';
 import { Letter } from '../../data/letters';
-import { useSpeech } from '../../hooks/useSpeech';
+import { useLetterAudio } from '../../hooks/useLetterAudio';
 
 interface LetterQuizModeProps {
   letters: Letter[];
@@ -27,7 +27,7 @@ export default function LetterQuizMode({
   lessonId,
   onBack,
 }: LetterQuizModeProps) {
-  const { say } = useSpeech();
+  const { play } = useLetterAudio();
   const { completeLesson } = useProgress();
 
   const [round, setRound] = useState(0);
@@ -51,12 +51,6 @@ export default function LetterQuizMode({
   }, []);
 
   const currentQ = questions.current[round];
-
-  useEffect(() => {
-    if (currentQ) {
-      setTimeout(() => say(currentQ.target.name), 300);
-    }
-  }, [round]);
 
   const handleChoice = (letter: Letter) => {
     if (chosen) return;
@@ -115,7 +109,7 @@ export default function LetterQuizMode({
           </div>
         </div>
 
-        {/* Instruction card */}
+        {/* Instruction card — audio + English name only (no Hebrew name) */}
         <motion.div
           key={round}
           initial={{ opacity: 0, y: 20 }}
@@ -124,15 +118,18 @@ export default function LetterQuizMode({
         >
           <p className="font-display text-xl text-gray-600 mb-3">Tap the letter:</p>
           <div
-            className="hebrew-text text-4xl font-bold text-gray-800 mb-2 cursor-pointer"
-            onClick={() => say(currentQ.target.name)}
+            className="font-display text-4xl font-bold text-orange-700 mb-2 cursor-pointer"
+            onClick={() => play(currentQ.target)}
           >
-            {currentQ.target.name}
-          </div>
-          <div className="font-display text-lg text-gray-500">
             {currentQ.target.nameEn}
           </div>
-          <div className="text-3xl mt-2">{currentQ.target.emoji}</div>
+          <div className="text-3xl mb-3">{currentQ.target.emoji}</div>
+          <button
+            onClick={() => play(currentQ.target)}
+            className="inline-flex items-center gap-2 bg-blue-400 hover:bg-blue-500 text-white font-display text-lg px-5 py-2 rounded-full shadow border-2 border-blue-200 no-select"
+          >
+            🔊 Hear it again
+          </button>
         </motion.div>
 
         {/* Choices grid */}

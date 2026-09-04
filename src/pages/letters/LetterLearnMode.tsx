@@ -1,40 +1,40 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import BackButton from '../../components/BackButton';
 import KidButton from '../../components/KidButton';
 import SpeakButton from '../../components/SpeakButton';
 import { useProgress } from '../../context/ProgressContext';
 import { Letter } from '../../data/letters';
-import { useSpeech } from '../../hooks/useSpeech';
+import { useLetterAudio } from '../../hooks/useLetterAudio';
 
 interface LetterLearnModeProps {
   letters: Letter[];
-  groupNum: number;
+  lessonId: string;
   onBack: () => void;
 }
 
-export default function LetterLearnMode({ letters, groupNum, onBack }: LetterLearnModeProps) {
+type Phase = 'single' | 'all' | 'done';
+
+export default function LetterLearnMode({ letters, lessonId, onBack }: LetterLearnModeProps) {
+  const shuffled = useMemo(() => [...letters].sort(() => Math.random() - 0.5), [letters]);
   const [idx, setIdx] = useState(0);
   const [direction, setDirection] = useState(1);
-  const { say, isSpeaking } = useSpeech();
+  const [phase, setPhase] = useState<Phase>('single');
+  const { play, isPlaying } = useLetterAudio();
   const { completeLesson } = useProgress();
-  const [completed, setCompleted] = useState(false);
 
-  const current = letters[idx];
-
-  useEffect(() => {
-    // Auto-speak when letter changes
-    const t = setTimeout(() => say(current.name), 400);
-    return () => clearTimeout(t);
-  }, [idx]);
+  const current = shuffled[idx];
+  const totalSteps = shuffled.length + 1; // individual letters + all-together stop
+  const stepLabel = phase === 'all' ? totalSteps : idx + 1;
 
   const next = () => {
-    if (idx < letters.length - 1) {
+    if (idx < shuffled.length - 1) {
       setDirection(1);
       setIdx(i => i + 1);
     } else {
-      completeLesson('letters', `group-${groupNum}`, 1);
-      setCompleted(true);
+      // After last individual letter → all-letters-together stop
+      setDirection(1);
+      setPhase('all');
     }
   };
 
@@ -45,7 +45,12 @@ export default function LetterLearnMode({ letters, groupNum, onBack }: LetterLea
     }
   };
 
-  if (completed) {
+  const finishAllTogether = () => {
+    completeLesson('letters', lessonId, 1);
+    setPhase('done');
+  };
+
+  if (phase === 'done') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-yellow-100 to-orange-100 flex flex-col items-center justify-center gap-6 px-4">
         <motion.div
@@ -57,10 +62,103 @@ export default function LetterLearnMode({ letters, groupNum, onBack }: LetterLea
           🎉
         </motion.div>
         <h2 className="font-display text-3xl text-orange-800">Great job!</h2>
-        <p className="font-display text-lg text-orange-600">You learned all {letters.length} letters!</p>
+        <p className="font-display text-lg text-orange-600">You learned all {shuffled.length} letters!</p>
         <KidButton onClick={onBack} color="bg-yellow-400">
           Back to Activities
         </KidButton>
+      </div>
+    );
+  }
+
+  // All letters together review stop
+  if (phase === 'all') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-yellow-100 to-orange-100 flex flex-col items-center px-4 py-6">
+        <div className="w-full max-w-md">
+          <div className="flex items-center justify-between mb-4">
+            <BackButton onClick={() => { setPhase('single'); setIdx(shuffled.length - 1); }} />
+            <div className="font-display text-orange-600">
+              {stepLabel} / {totalSteps}
+            </div>
+          </div>
+
+          <div className="flex gap-2 justify-center mb-4">
+            {Array.from({ length: totalSteps }, (_, i) => (
+              <div
+                key={i}
+                className={`rounded-full transition-all duration-300 ${
+                  i < totalSteps ? 'w-4 h-4 bg-orange-400' : 'w-3 h-3 bg-orange-200'
+                }`}
+              />
+            ))}
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white/80 rounded-3xl p-6 text-center shadow-2xl border-4 border-orange-200 mb-6"
+          >
+            <h2 className="font-display text-2xl text-orange-800 mb-1">All together!</h2>
+            <p className="font-display text-base text-orange-600 mb-5">
+              Tap any letter to hear it
+            </p>
+
+            <div
+              className={`flex flex-wrap gap-2 justify-center ${shuffled.length > 8 ? 'max-h-72 overflow-y-auto' : ''}`}
+              dir="rtl"
+            >
+              {shuffled.map((letter, i) => (
+                <motion.button
+                  key={letter.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: Math.min(i * 0.04, 0.6) }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => play(letter)}
+                  className={`
+                    ${letter.color} rounded-2xl flex flex-col items-center justify-center
+                    border-4 border-white/60 shadow-lg no-select cursor-pointer
+                    hover:scale-105 transition-transform
+                    ${shuffled.length > 8 ? 'w-14 h-16' : 'w-20 h-24'}
+                  `}
+                >
+                  <span className={`hebrew-text font-bold text-gray-800 leading-none ${shuffled.length > 8 ? 'text-2xl' : 'text-4xl'}`}>
+                    {letter.letter}
+                  </span>
+                  {shuffled.length <= 8 && (
+                    <span className="font-display text-xs text-gray-600 mt-1">{letter.nameEn}</span>
+                  )}
+                </motion.button>
+              ))}
+            </div>
+
+            <div className="flex justify-center mt-5">
+              <SpeakButton
+                onClick={() => {
+                  // Speak all letter names in sequence
+                  shuffled.forEach((l, i) => {
+                    setTimeout(() => play(l), i * 900);
+                  });
+                }}
+                isSpeaking={isPlaying}
+                size="md"
+              />
+            </div>
+          </motion.div>
+
+          <div className="flex gap-4">
+            <KidButton
+              onClick={() => { setPhase('single'); setIdx(shuffled.length - 1); }}
+              color="bg-white"
+              className="flex-1"
+            >
+              ← Prev
+            </KidButton>
+            <KidButton onClick={finishAllTogether} color="bg-orange-400" className="flex-1">
+              🎉 Done!
+            </KidButton>
+          </div>
+        </div>
       </div>
     );
   }
@@ -72,7 +170,7 @@ export default function LetterLearnMode({ letters, groupNum, onBack }: LetterLea
         <div className="flex items-center justify-between mb-4">
           <BackButton onClick={onBack} />
           <div className="font-display text-orange-600">
-            {idx + 1} / {letters.length}
+            {stepLabel} / {totalSteps}
           </div>
         </div>
 
@@ -83,7 +181,7 @@ export default function LetterLearnMode({ letters, groupNum, onBack }: LetterLea
 
         {/* Progress dots */}
         <div className="flex gap-2 justify-center mb-4">
-          {letters.map((_, i) => (
+          {Array.from({ length: totalSteps }, (_, i) => (
             <div
               key={i}
               className={`rounded-full transition-all duration-300 ${
@@ -128,20 +226,11 @@ export default function LetterLearnMode({ letters, groupNum, onBack }: LetterLea
             {/* Emoji */}
             <div className="text-5xl mb-3">{current.emoji}</div>
 
-            {/* Name */}
-            <div className="hebrew-text text-2xl font-bold text-gray-700 mb-1">{current.name}</div>
-            <div className="font-display text-xl text-gray-600">{current.nameEn}</div>
-            {current.sound && (
-              <div className="font-display text-base text-gray-500 mt-1">
-                sounds like: <strong>"{current.sound}"</strong>
-              </div>
-            )}
-
             {/* Speak button */}
             <div className="flex justify-center mt-4">
               <SpeakButton
-                onClick={() => say(current.name)}
-                isSpeaking={isSpeaking}
+                onClick={() => play(current)}
+                isSpeaking={isPlaying}
                 size="lg"
               />
             </div>
@@ -165,7 +254,7 @@ export default function LetterLearnMode({ letters, groupNum, onBack }: LetterLea
             size="md"
             className="flex-1"
           >
-            {idx === letters.length - 1 ? '🎉 Done!' : 'Next →'}
+            {idx === shuffled.length - 1 ? 'All Together →' : 'Next →'}
           </KidButton>
         </div>
       </div>

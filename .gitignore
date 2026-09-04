@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Third-party letter recordings (learnhebrewalphabet.com) - local study only.
+# Never commit or deploy; app falls back to speech synthesis when absent.
+public/audio/letters/*.m4a
+
+# Claude Code local settings
+.claude/

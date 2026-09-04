@@ -18,14 +18,17 @@ export function useSpeech(): UseSpeechReturn {
 
     const findHebrewVoice = () => {
       const voices = window.speechSynthesis.getVoices();
-      const he = voices.find(
+      const hebrewVoices = voices.filter(
         v => v.lang.startsWith('he') || v.lang.startsWith('iw')
       );
-      if (he) {
-        hebrewVoiceRef.current = he;
+      // Prefer a Google network voice — noticeably better stress/prosody than
+      // the local OS voice (e.g. macOS "Carmit").
+      const best =
+        hebrewVoices.find(v => v.name.includes('Google')) ?? hebrewVoices[0];
+      if (best) {
+        hebrewVoiceRef.current = best;
         setHasHebrewVoice(true);
       } else {
-        // Fallback: try any available voice for Hebrew text
         setHasHebrewVoice(false);
       }
     };

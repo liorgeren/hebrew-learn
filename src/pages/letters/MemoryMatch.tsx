@@ -6,7 +6,7 @@ import StarBurst from '../../components/StarBurst';
 import StarsDisplay from '../../components/StarsDisplay';
 import { useProgress } from '../../context/ProgressContext';
 import { Letter } from '../../data/letters';
-import { useSpeech } from '../../hooks/useSpeech';
+import { useLetterAudio } from '../../hooks/useLetterAudio';
 
 interface Card {
   id: string;
@@ -26,7 +26,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export default function MemoryMatch({ letters, lessonId, onBack }: MemoryMatchProps) {
-  const { say } = useSpeech();
+  const { play } = useLetterAudio();
   const { completeLesson } = useProgress();
 
   const [cards, setCards] = useState<Card[]>([]);
@@ -63,7 +63,7 @@ export default function MemoryMatch({ letters, lessonId, onBack }: MemoryMatchPr
       const [a, b] = newFlipped.map(id => cards.find(c => c.id === id)!);
       if (a.letterId === b.letterId) {
         // Match!
-        say(a.letter.name);
+        play(a.letter);
         setShowBurst(true);
         const newMatched = new Set(matched);
         newMatched.add(a.letterId);
