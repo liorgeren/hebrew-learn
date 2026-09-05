@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import BackButton from '../components/BackButton';
 import KidButton from '../components/KidButton';
 import SpeakButton from '../components/SpeakButton';
 import StarBurst from '../components/StarBurst';
 import StarsDisplay from '../components/StarsDisplay';
 import { useProgress } from '../context/ProgressContext';
-import { Word, WORDS } from '../data/words';
+import { Word, WORDS, pickStageWords, shuffleList } from '../data/words';
 import { useSpeech } from '../hooks/useSpeech';
 
 interface WordsWorldProps {
@@ -86,8 +86,7 @@ function SoundItOut({ onBack }: { onBack: () => void }) {
   const [heardFull, setHeardFull] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [showBurst, setShowBurst] = useState(false);
-
-  const words = WORDS.slice(0, 10);
+  const [words] = useState(() => pickStageWords());
   const word = words[idx];
 
   const hearFullWord = () => {
@@ -168,19 +167,15 @@ function PictureMatch({ onBack }: { onBack: () => void }) {
   const [finished, setFinished] = useState(false);
   const [shakingId, setShakingId] = useState<string | null>(null);
 
-  const ROUNDS = 8;
-  const questions = useRef<Array<{ target: Word; choices: Word[] }>>([]);
-
-  useEffect(() => {
-    const pool = [...WORDS].sort(() => Math.random() - 0.5);
-    questions.current = Array.from({ length: ROUNDS }, (_, i) => {
-      const target = pool[i % pool.length];
-      const others = WORDS.filter(w => w.id !== target.id).sort(() => Math.random() - 0.5).slice(0, 2);
-      return { target, choices: [target, ...others].sort(() => Math.random() - 0.5) };
+  const [questions] = useState(() => {
+    const pool = pickStageWords();
+    return pool.map(target => {
+      const others = shuffleList(WORDS.filter(w => w.id !== target.id)).slice(0, 2);
+      return { target, choices: shuffleList([target, ...others]) };
     });
-  }, []);
-
-  const q = questions.current[round];
+  });
+  const ROUNDS = questions.length;
+  const q = questions[round];
 
   useEffect(() => {
     if (q) setTimeout(() => say(q.target.word, 0.6), 300);

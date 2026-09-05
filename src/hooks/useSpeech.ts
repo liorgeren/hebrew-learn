@@ -26,7 +26,6 @@ export function useSpeech(): UseSpeechReturn {
   const [isSupported] = useState(() => 'speechSynthesis' in window);
   const [hasHebrewVoice, setHasHebrewVoice] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const googleVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const fallbackVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -63,7 +62,6 @@ export function useSpeech(): UseSpeechReturn {
       // Google when it exists; only use a local voice when it's the only option
       // (Cursor's browser, Safari).
       const local = hebrewVoices.find(v => v.localService) ?? null;
-      googleVoiceRef.current = google;
       fallbackVoiceRef.current = google ?? local ?? hebrewVoices[0] ?? null;
       setHasHebrewVoice(!!fallbackVoiceRef.current);
     };
@@ -157,9 +155,6 @@ export function useSpeech(): UseSpeechReturn {
     },
     [isSupported, playClip, speakNow]
   );
-
-  const clipCount = useMemo(() => CLIPS.size, []);
-  void clipCount;
 
   return { say, isSupported, hasHebrewVoice, isSpeaking };
 }
