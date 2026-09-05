@@ -17,7 +17,13 @@ export function useLetterAudio() {
   const play = useCallback(
     (letter: Letter) => {
       currentRef.current?.pause();
-      window.speechSynthesis?.cancel();
+      // Only clear the TTS queue when something is actually in it — calling
+      // cancel() on an idle engine repeatedly (once per letter tap) is a
+      // known trigger for Chrome/macOS local voices hanging for the rest of
+      // the tab session.
+      if (window.speechSynthesis?.speaking || window.speechSynthesis?.pending) {
+        window.speechSynthesis.cancel();
+      }
 
       const audio = new Audio(clipUrl(letter.id));
       currentRef.current = audio;

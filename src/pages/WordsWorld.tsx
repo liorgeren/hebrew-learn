@@ -37,7 +37,7 @@ export default function WordsWorld({ onBack }: WordsWorldProps) {
           <ActivityCard
             emoji="🔊"
             title="Sound It Out"
-            subtitle="Tap each part to read!"
+            subtitle="See it, hear it, say it!"
             color="bg-pink-300"
             onClick={() => setMode('soundItOut')}
             stars={getLessonStars('words', 'soundItOut')}
@@ -83,20 +83,12 @@ function SoundItOut({ onBack }: { onBack: () => void }) {
   const { completeLesson } = useProgress();
   const [idx, setIdx] = useState(0);
   const [, setDirection] = useState(1);
-  const [tappedSyllables, setTappedSyllables] = useState<Set<number>>(new Set());
   const [heardFull, setHeardFull] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [showBurst, setShowBurst] = useState(false);
 
   const words = WORDS.slice(0, 10);
   const word = words[idx];
-
-  const tapSyllable = (i: number, syl: string) => {
-    say(syl, 0.5);
-    const next = new Set(tappedSyllables);
-    next.add(i);
-    setTappedSyllables(next);
-  };
 
   const hearFullWord = () => {
     say(word.word, 0.6);
@@ -108,7 +100,6 @@ function SoundItOut({ onBack }: { onBack: () => void }) {
     if (idx < words.length - 1) {
       setDirection(1);
       setIdx(i => i + 1);
-      setTappedSyllables(new Set());
       setHeardFull(false);
     } else {
       completeLesson('words', 'soundItOut', 2);
@@ -125,8 +116,6 @@ function SoundItOut({ onBack }: { onBack: () => void }) {
       </div>
     );
   }
-
-  const allSyllablesTapped = tappedSyllables.size === word.syllables.length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-pink-100 to-rose-100 flex flex-col items-center px-4 py-6">
@@ -150,43 +139,10 @@ function SoundItOut({ onBack }: { onBack: () => void }) {
           <div className="font-display text-2xl text-gray-600">{word.translation}</div>
         </motion.div>
 
-        {/* Syllable tap area */}
-        <div className="bg-white/70 rounded-2xl p-4 mb-4">
-          <p className="font-display text-center text-gray-600 mb-3">
-            Tap each part to hear it:
-          </p>
-          <div className="flex gap-3 justify-center flex-wrap" dir="rtl">
-            {word.syllables.map((syl, i) => (
-              <motion.button
-                key={i}
-                onClick={() => tapSyllable(i, syl)}
-                whileTap={{ scale: 0.85 }}
-                animate={tappedSyllables.has(i) ? { y: [0, -8, 0] } : {}}
-                className={`
-                  hebrew-text text-3xl font-bold px-4 py-3 rounded-xl border-4 min-w-[60px]
-                  no-select cursor-pointer transition-all shadow
-                  ${tappedSyllables.has(i)
-                    ? 'bg-green-300 border-green-400'
-                    : 'bg-blue-100 border-blue-200 hover:bg-blue-200'}
-                `}
-              >
-                {syl}
-              </motion.button>
-            ))}
-          </div>
-        </div>
-
         {/* Hear full word */}
-        {allSyllablesTapped && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center gap-3 mb-4"
-          >
-            <p className="font-display text-gray-600">Now hear the whole word!</p>
-            <SpeakButton onClick={hearFullWord} isSpeaking={isSpeaking} size="lg" />
-          </motion.div>
-        )}
+        <div className="flex flex-col items-center gap-3 mb-4">
+          <SpeakButton onClick={hearFullWord} isSpeaking={isSpeaking} size="lg" />
+        </div>
 
         {/* Next button */}
         {heardFull && (
