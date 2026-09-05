@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
 
-export type WorldId = 'letters' | 'nikud' | 'syllables' | 'words';
+export type WorldId = 'letters' | 'words';
 
 export interface LessonProgress {
   completed: boolean;
@@ -21,8 +21,6 @@ export interface ProgressState {
 const DEFAULT_PROGRESS: ProgressState = {
   worlds: {
     letters: { unlocked: true, lessons: {}, totalStars: 0 },
-    nikud: { unlocked: true, lessons: {}, totalStars: 0 },
-    syllables: { unlocked: true, lessons: {}, totalStars: 0 },
     words: { unlocked: true, lessons: {}, totalStars: 0 },
   },
   totalStars: 0,

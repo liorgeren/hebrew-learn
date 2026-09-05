@@ -3,8 +3,6 @@ import { useState } from 'react';
 import { ProgressProvider, WorldId } from './context/ProgressContext';
 import HomeScreen from './pages/HomeScreen';
 import LettersWorld from './pages/LettersWorld';
-import NikudWorld from './pages/NikudWorld';
-import SyllablesWorld from './pages/SyllablesWorld';
 import WordsWorld from './pages/WordsWorld';
 
 type Screen = 'home' | WorldId;
@@ -23,16 +21,6 @@ function AppContent() {
         {screen === 'letters' && (
           <PageTransition key="letters">
             <LettersWorld onBack={() => setScreen('home')} />
-          </PageTransition>
-        )}
-        {screen === 'nikud' && (
-          <PageTransition key="nikud">
-            <NikudWorld onBack={() => setScreen('home')} />
-          </PageTransition>
-        )}
-        {screen === 'syllables' && (
-          <PageTransition key="syllables">
-            <SyllablesWorld onBack={() => setScreen('home')} />
           </PageTransition>
         )}
         {screen === 'words' && (

@@ -25,26 +25,6 @@ const WORLDS: WorldCard[] = [
     number: 1,
   },
   {
-    id: 'nikud',
-    title: 'נִיקּוּד',
-    subtitle: 'Learn the Vowels',
-    emoji: '🎵',
-    bgGradient: 'from-green-300 to-teal-300',
-    borderColor: 'border-green-500',
-    shadowColor: 'shadow-green-200',
-    number: 2,
-  },
-  {
-    id: 'syllables',
-    title: 'הַבְרוֹת',
-    subtitle: 'Build Syllables',
-    emoji: '🧩',
-    bgGradient: 'from-blue-300 to-indigo-300',
-    borderColor: 'border-blue-500',
-    shadowColor: 'shadow-blue-200',
-    number: 3,
-  },
-  {
     id: 'words',
     title: 'מִלִּים',
     subtitle: 'Read Words',
@@ -52,7 +32,7 @@ const WORLDS: WorldCard[] = [
     bgGradient: 'from-pink-300 to-rose-300',
     borderColor: 'border-pink-500',
     shadowColor: 'shadow-pink-200',
-    number: 4,
+    number: 2,
   },
 ];
 
